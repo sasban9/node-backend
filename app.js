@@ -1,17 +1,42 @@
 const path = require("path");
 
+const { v4: uuidv4 } = require('uuid');
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const multer = require("multer");
 
 const feedRoutes = require("./routes/feed");
 
 const app = express();
 
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "media");
+  },
+  filename: (req, file, cb) => {
+    cb(null, '/MX' + uuidv4() + '=' + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 require("dotenv").config();
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json
+app.use(multer({storage: multerStorage, fileFilter: fileFilter}).single('image'));
 app.use("/media", express.static(path.join(__dirname, "media")));
 
 app.use((req, res, next) => {
