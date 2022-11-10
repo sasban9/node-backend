@@ -1,6 +1,6 @@
 const path = require("path");
 
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -17,7 +17,7 @@ const multerStorage = multer.diskStorage({
     cb(null, "media");
   },
   filename: (req, file, cb) => {
-    cb(null, '/MX' + uuidv4() + '=' + file.originalname);
+    cb(null, "/MX" + uuidv4() + "=" + file.originalname);
   },
 });
 
@@ -37,7 +37,9 @@ require("dotenv").config();
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json
-app.use(multer({storage: multerStorage, fileFilter: fileFilter}).single('image'));
+app.use(
+  multer({ storage: multerStorage, fileFilter: fileFilter }).single("image")
+);
 app.use("/media", express.static(path.join(__dirname, "media")));
 
 app.use((req, res, next) => {
@@ -57,7 +59,8 @@ app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
   const message = error.message;
-  res.status(status).json({ message: message });
+  const data = error.data;
+  res.status(status).json({ message: message, data: data });
 });
 
 mongoose
