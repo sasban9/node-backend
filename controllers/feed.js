@@ -6,6 +6,37 @@ const { validationResult } = require("express-validator");
 const Post = require("../models/post");
 const User = require("../models/user");
 
+exports.getStatus = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      res.status(200).json({ message: "Status fetched.", status: user.status });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.updateStatus = (req, res, next) => {
+  const newStatus = req.body.status;
+  User.findById(req.userId)
+    .then((user) => {
+      user.status = newStatus;
+      return user.save();
+    })
+    .then((result) => {
+      res.status(200).json({ message: "Status updated." });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
@@ -133,8 +164,8 @@ exports.updatePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
-      if(post.creator.toString() !== req.userId) {
-        const error = new Error('Not authorized!');
+      if (post.creator.toString() !== req.userId) {
+        const error = new Error("Not authorized!");
         error.statusCode = 403;
         throw error;
       }
@@ -166,8 +197,8 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
-      if(post.creator.toString() !== req.userId) {
-        const error = new Error('Not authorized!');
+      if (post.creator.toString() !== req.userId) {
+        const error = new Error("Not authorized!");
         error.statusCode = 403;
         throw error;
       }
@@ -178,11 +209,11 @@ exports.deletePost = (req, res, next) => {
     .then((result) => {
       return User.findById(req.userId);
     })
-    .then(user => {
+    .then((user) => {
       user.posts.pull(postId);
       return user.save();
     })
-    .then(result => {
+    .then((result) => {
       res.status(200).json({ message: "Deleted Post." });
     })
     .catch((err) => {

@@ -8,6 +8,7 @@ const router = express.Router();
 
 // GET /feed/posts
 router.get("/posts", isAuth, feedController.getPosts);
+router.get("/status", isAuth, feedController.getStatus);
 
 // POST /feed/post
 router.post(
@@ -30,6 +31,13 @@ router.put(
     body("content").trim().isLength({ min: 5 }),
   ],
   feedController.updatePost
+);
+
+router.patch(
+  "/status",
+  isAuth,
+  [body("status").trim().not().isEmpty()],
+  feedController.updateStatus
 );
 
 router.delete("/post/:postId", isAuth, feedController.deletePost);
