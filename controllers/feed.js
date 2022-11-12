@@ -37,36 +37,33 @@ exports.updateStatus = (req, res, next) => {
     });
 };
 
-exports.getPosts = (req, res, next) => {
+exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
-  let totalItems;
-  Post.find()
-    .countDocuments()
-    .then((count) => {
-      totalItems = count;
-      return Post.find()
-        .skip((currentPage - 1) * perPage)
-        .limit(perPage);
-    })
-    .then((posts) => {
-      if (!posts) {
-        const error = new Error("No posts found.");
-        error.statusCode = 404;
-        throw error;
-      }
-      res.status(200).json({
-        message: "Posts fetched.",
-        posts: posts,
-        totalItems: totalItems,
-      });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+  // let totalItems;
+  try {
+    const totalItems = await Post.find().countDocuments();
+    const posts = await Post.find()
+      .populate("creator", "name email")
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
+    if (!posts) {
+      const error = new Error("No posts found.");
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({
+      message: "Posts fetched.",
+      posts: posts,
+      totalItems: totalItems,
     });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 };
 
 exports.createPost = (req, res, next) => {
@@ -118,23 +115,23 @@ exports.createPost = (req, res, next) => {
     });
 };
 
-exports.getPost = (req, res, next) => {
+exports.getPost = async (req, res, next) => {
   const postId = req.params.postId;
-  Post.findById(postId)
-    .then((post) => {
-      if (!post) {
-        const error = new Error("Could not find post.");
-        error.statusCode = 404;
-        throw error;
-      }
-      res.status(200).json({ message: "Post fetched.", post: post });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+  try {
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      const error = new Error("Could not find post.");
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({ message: "Post fetched.", post: post });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 };
 
 exports.updatePost = (req, res, next) => {
