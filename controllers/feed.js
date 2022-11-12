@@ -40,13 +40,14 @@ exports.updateStatus = (req, res, next) => {
 
 exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
-  const perPage = 4;
+  const perPage = req.query.perPage || 3;
+  console.log(perPage);
   // let totalItems;
   try {
     const totalItems = await Post.find().countDocuments();
     const posts = await Post.find()
       .populate("creator", "name email")
-      .sort({createdAt: -1})
+      .sort({ createdAt: -1 })
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
@@ -59,6 +60,7 @@ exports.getPosts = async (req, res, next) => {
       message: "Posts fetched.",
       posts: posts,
       totalItems: totalItems,
+      perPage: perPage,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -97,7 +99,7 @@ exports.createPost = (req, res, next) => {
     .save()
     .then((result) => {
       const user = User.findById(req.userId);
-      return user
+      return user;
     })
     .then((user) => {
       creator = user;
@@ -126,7 +128,7 @@ exports.createPost = (req, res, next) => {
 exports.getPost = async (req, res, next) => {
   const postId = req.params.postId;
   try {
-    const post = await Post.findById(postId).populate('creator');
+    const post = await Post.findById(postId).populate("creator");
 
     if (!post) {
       const error = new Error("Could not find post.");
@@ -162,7 +164,8 @@ exports.updatePost = (req, res, next) => {
   //   error.statusCode = 422;
   //   throw error;
   // }
-  Post.findById(postId).populate('creator')
+  Post.findById(postId)
+    .populate("creator")
     .then((post) => {
       if (!post) {
         const error = new Error("Could not find post.");
