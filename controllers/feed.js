@@ -3,6 +3,7 @@ const path = require("path");
 
 const { validationResult } = require("express-validator");
 
+const io = require("../socket");
 const Post = require("../models/post");
 const User = require("../models/user");
 
@@ -39,12 +40,13 @@ exports.updateStatus = (req, res, next) => {
 
 exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
-  const perPage = 2;
+  const perPage = 4;
   // let totalItems;
   try {
     const totalItems = await Post.find().countDocuments();
     const posts = await Post.find()
       .populate("creator", "name email")
+      .sort({createdAt: -1})
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
@@ -101,6 +103,10 @@ exports.createPost = (req, res, next) => {
       return user.save();
     })
     .then((result) => {
+      io.getIO().emit('posts', {
+        action: 'create',
+        post: post
+      });
       res.status(201).json({
         message: "Post created successfully!",
         post: post,
@@ -118,7 +124,7 @@ exports.createPost = (req, res, next) => {
 exports.getPost = async (req, res, next) => {
   const postId = req.params.postId;
   try {
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate('creator');
 
     if (!post) {
       const error = new Error("Could not find post.");

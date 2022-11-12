@@ -68,12 +68,7 @@ mongoose
   .then((result) => {
     // console.log(result);
     const httpServer = app.listen(8080);
-    const io = require("socket.io")(httpServer, {
-      cors: {
-        origin: "http://localhost:3000",
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-      },
-    });
+    const io = require("./socket").init(httpServer);
     io.on("connection", (socket) => {
       console.log("Client connected");
     });
