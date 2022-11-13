@@ -41,7 +41,6 @@ exports.updateStatus = (req, res, next) => {
 exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = req.query.perPage || 3;
-  console.log(perPage);
   // let totalItems;
   try {
     const totalItems = await Post.find().countDocuments();
@@ -223,6 +222,7 @@ exports.deletePost = (req, res, next) => {
       return user.save();
     })
     .then((result) => {
+      io.getIO().emit("posts", { action: "delete", post: postId });
       res.status(200).json({ message: "Deleted Post." });
     })
     .catch((err) => {
