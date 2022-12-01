@@ -21,7 +21,7 @@ const multerStorage = multer.diskStorage({
     cb(null, "media");
   },
   filename: (req, file, cb) => {
-    cb(null, "/MX" + uuidv4() + "=" + file.originalname);
+    cb(null, new Date().getTime() + "=" + file.originalname);
   },
 });
 
