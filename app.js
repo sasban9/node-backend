@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 
 const { v4: uuidv4 } = require("uuid");
 
@@ -52,13 +53,28 @@ app.use((req, res, next) => {
     "OPTIONS, GET, POST, PUT, PATCH, DELETE"
   );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if(req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
   next();
 });
 
 app.use(auth);
+
+app.put("/post-image", (req, res, next) => {
+  if(!req.isAuth) {
+    throw new Error("Not authenticated!");
+  }
+  if (!req.file) {
+    return res.status(200).json({ message: "No file provided!" });
+  }
+  if(req.body.oldPath) {
+    clearImage(req.body.oldPath)
+  }
+  return res
+    .status(201)
+    .json({ message: "File stored.", filePath: req.file.path.replace("\\", "/") });
+});
 
 app.use(
   "/graphql",
@@ -92,3 +108,8 @@ mongoose
     app.listen(8080);
   })
   .catch((err) => console.log(err));
+
+const clearImage = (filePath) => {
+  filePath = path.join(__dirname, "..", filePath);
+  fs.unlink(filePath, (err) => console.log(err));
+};
